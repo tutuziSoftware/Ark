@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html ng-app="fx0" ng-csp>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1">
+
+    <title>fx0editor</title>
+    <link rel="stylesheet" href="bootstrap.min.css">
+    <link rel="stylesheet" href="bootstrap-theme.css">
+    <link rel="stylesheet" href="editor.css">
+    <script src="angular.min.js"></script>
+    <script src="localforage.js"></script>
+    <script src="jquery-2.1.3.min.js"></script>
+    <script src="underscore-min.js"></script>
+    <script src="gh3.js"></script>
+    <script src="app.js"></script>
+</head>
+  <body ng-controller="saveController" class="container-fluid">
+    <textarea class="col-xs-12 editor" ng-model="editor" ng-change="test()"></textarea>
+    <ul class="btn-group col-xs-12" ng-show="showMenu">
+      <li class="btn btn-default col-xs-6" ng-click="toggleGists()">
+        リスト
+      </li>
+      <li class="btn btn-default col-xs-6" ng-click="showSearch = true">
+        検索
+      </li>
+    </ul>
+    <!-- 検索欄 -->
+    <div ng-show="showSearch" class="input-group">
+      <input ng-model="searchQuery" class="form-control">
+      <span class="input-group-btn">
+        <button class="btn btn-default" type="button" ng-click="search()">Go!</button>
+      </span>
+    </div>
+    <!-- ノートリスト -->
+    <ul ng-show="showGists">
+      <li ng-repeat="gist in gists">{{gist}}</li>
+    </ul>
+  </body>
+</html>
