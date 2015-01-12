@@ -34,24 +34,29 @@ angular.module('fx0', []).controller("saveController", function($scope, $http){
   };
   
   $scope.saveGist = function(){
-    console.log(selectedGist);
-    
-    var files = {};
-    
-    files[selectedGist.file.filename] = {
-      content:$scope.editor
-    };
-    
-    $http({
-      url:"https://api.github.com/gists/"+selectedGist.gistId,
-      method:"PATCH",
-      data:{
-        files:files
-      }
-    }).success(function(){
-      console.log(arguments);
-    }).error(function(){
-      console.log(arguments);
+    new Storage("accessToken").getItem().then(function(accessToken){
+      console.log(accessToken);
+
+      var files = {};
+
+      files[selectedGist.file.filename] = {
+        content:$scope.editor
+      };
+
+      $http({
+        url:"https://api.github.com/gists/"+selectedGist.gistId,
+        method:"PATCH",
+        data:{
+          files:files
+        },
+        headers: {
+          Authorization: "token "+accessToken
+        }
+      }).success(function(){
+        console.log(arguments);
+      }).error(function(){
+        console.log(arguments);
+      });
     });
   };
   
