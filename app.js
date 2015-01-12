@@ -1,26 +1,59 @@
 angular.module('fx0', []).controller("saveController", function($scope, $http){
   initOauth($http);
+  fetchGists();
   
   //---private-----------------------------------------------------------------------------------------------
-  var editor = new Editor;
+  var selectedGist = {
+    gistId:null,
+    file:null
+  };
   
   //---$scope------------------------------------------------------------------------------------------------
+  $scope.showGists = true;
   $scope.showSearch = false;
   
-  editor.get(function(err, text){
-    $scope.editor = text;
-    $scope.$apply();
-  });
-  
-  $scope.toggleGists = function(){
-    $scope.showGists = !$scope.showGists;
+  $scope.selectGists = function(gistId, file){
+    console.log("selectGists", gistId, file);
+    
+    selectedGist.gistId = gistId;
+    selectedGist.file = file;
+    
+    $http({
+      url:file.raw_url
+    }).success(function(text){
+      new Storage(gistId+file.raw_url).setItem(text);
+      
+      $scope.editor = text;
+    }).error(function(){
+      new Storage(gistId+file.raw_url).getItem().then(function(text){
+        $scope.editor = text;
+      }).catch(function(){
+        $scope.offline = true;
+      });
+    });
   };
   
-  $scope.test = function(){
-    editor.write($scope.editor);
+  $scope.saveGist = function(){
+    console.log(selectedGist);
+    
+    var files = {};
+    
+    files[selectedGist.file.filename] = {
+      content:$scope.editor
+    };
+    
+    $http({
+      url:"https://api.github.com/gists/"+selectedGist.gistId,
+      method:"PATCH",
+      data:{
+        files:files
+      }
+    }).success(function(){
+      console.log(arguments);
+    }).error(function(){
+      console.log(arguments);
+    });
   };
-  
-  $scope.search = function(){};
   
   //---functions---------------------------------------------------------------------------------------------
   
@@ -69,13 +102,35 @@ angular.module('fx0', []).controller("saveController", function($scope, $http){
         url:"https://api.github.com/user?access_token="+accessToken,
         method:"GET"
       }).success(function(data){
-        new Storage("userId").setItem(data.id);
+        new Storage("userId").setItem(data.login);
       }).error(function(data){
         console.log(data);
       });
     });
   }
+  
+  function fetchGists(){
+    new Storage("userId").getItem().then(function(userId){
+      $http({
+        url:"https://api.github.com/users/"+userId+"/gists",
+        method:"GET"
+      }).success(function(gists){
+        $scope.offline = false;
+
+        new Storage("gist").setItem(gists);
+        $scope.showGists = !$scope.showGists;
+        $scope.gists = gists;
+      }).error(function(){
+        $scope.offline = true;
+
+        new Storage("gist").getItem().then(function(gists){
+          $scope.gists = gists;
+        });
+      });
+    });
+  }
 });
+
 
 
 

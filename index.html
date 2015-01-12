@@ -16,13 +16,26 @@
     <script src="app.js"></script>
 </head>
   <body ng-controller="saveController" class="container-fluid">
+    <!-- ノートリスト -->
+    <ul ng-show="showGists">
+      <li ng-repeat="gist in gists">
+        <ul>
+          <li ng-repeat="file in gist.files">
+            <a ng-click="selectGists(gist.id, file)">{{file.filename}}</a>
+          </li>
+        </ul>
+      </li>
+    </ul>
     <textarea class="col-xs-12 editor" ng-model="editor" ng-change="test()"></textarea>
     <ul class="btn-group col-xs-12" ng-show="showMenu">
-      <li class="btn btn-default col-xs-6" ng-click="toggleGists()">
+      <li class="btn btn-default col-xs-4" ng-click="toggleGists()">
         リスト
       </li>
-      <li class="btn btn-default col-xs-6" ng-click="showSearch = true">
+      <li class="btn btn-default col-xs-4" ng-click="showSearch = true">
         検索
+      </li>
+      <li class="btn btn-default col-xs-4" ng-click="saveGist()">
+        保存
       </li>
     </ul>
     <!-- 検索欄 -->
@@ -32,9 +45,5 @@
         <button class="btn btn-default" type="button" ng-click="search()">Go!</button>
       </span>
     </div>
-    <!-- ノートリスト -->
-    <ul ng-show="showGists">
-      <li ng-repeat="gist in gists">{{gist}}</li>
-    </ul>
   </body>
 </html>
