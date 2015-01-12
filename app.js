@@ -144,18 +144,7 @@ angular.module('fx0', []).controller("saveController", function($scope, $http){
 
 
 
-function Editor(){}
 
-Editor.prototype.KEY = "editor";
-
-Editor.prototype.write = function(text){
-  console.log(this.KEY, text);
-  localforage.setItem(this.KEY, text);
-};
-
-Editor.prototype.get = function(callback){
-  localforage.getItem(this.KEY, callback);
-};
 
 /**
  * 永続ストレージにアクセスする為のクラスです。
