@@ -1,5 +1,4 @@
-angular.module('fx0', []).controller("saveController", ['$scope', '$http', function($scope, $http){
-  console.log($http);
+angular.module('fx0', []).controller("saveController", ['$scope', '$http', '$timeout', function($scope, $http, $timeout){
   initOauth($http);
   fetchGists();
   
@@ -15,26 +14,32 @@ angular.module('fx0', []).controller("saveController", ['$scope', '$http', funct
   $scope.showEditor = false;
   $scope.offline = false;
   
-  $scope.selectGists = function(gistId, file){
-    selectedGist.gistId = gistId;
+  $scope.selectGists = function(gist, file){
+    selectedGist.gistId = gist.id;
     selectedGist.file = file;
+    const editorSave = new Storage(selectedGist.gistId+file.filename);
     
-    $http({
-      url:file.raw_url
-    }).success(function(text){
-      new Storage(gistId+file.raw_url).setItem(text);
-      
-      $scope.editor = text;
-      $scope.showEditor = true;
-      $scope.showGists = false;
-    }).error(function(){
-      new Storage(gistId+file.raw_url).getItem().then(function(text){
+    new Storage("accessToken").getItem().then(function(accessToken){
+      $http({
+        url:"https://api.github.com/gists/"+gist.id
+      }).success(function(gist){
+        var text = gist.files[file.filename].content;
+        editorSave.setItem(text);
+
         $scope.editor = text;
         $scope.showEditor = true;
         $scope.showGists = false;
-      }).catch(function(){
+        $scope.offline = false;
+      }).error(function(){
+        editorSave.getItem().then(function(text){
+          $scope.editor = text;
+          $scope.showEditor = true;
+          $scope.showGists = false;
+        }).catch(function(){
+          $scope.showEditor = false;
+        });
+        
         $scope.offline = true;
-        $scope.showEditor = false;
       });
     });
   };
@@ -64,7 +69,10 @@ angular.module('fx0', []).controller("saveController", ['$scope', '$http', funct
           Authorization: "token "+accessToken
         }
       }).success(function(){
-        console.log(arguments);
+        $scope.saved = true;
+        $timeout(function(){
+          $scope.saved = false;
+        }, 3000);
       }).error(function(){
         console.log(arguments);
       });

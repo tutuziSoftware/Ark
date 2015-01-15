@@ -17,19 +17,20 @@
 </head>
   <body ng-controller="saveController" class="container-fluid">
     <div class="col-xs-12" ng-show="offline">通信に失敗しました。ローカルに保存されているデータを表示します。</div>
+    <div class="col-xs-12" ng-show="saved">保存しました</div>
     <!-- ノートリスト -->
-    <ul ng-show="showGists">
-      <li ng-repeat="gist in gists">
-        <ul>
-          <li ng-repeat="file in gist.files">
-            <a ng-click="selectGists(gist.id, file)">{{file.filename}}</a>
-            <span ng-hide="gist.public">private</span>
+    <ul ng-show="showGists" class="media-list">
+      <li ng-repeat="gist in gists" class="media">
+        <ul class="media-list">
+          <li ng-repeat="file in gist.files" class="media">
+            <a ng-click="selectGists(gist, file)">{{file.filename}}</a>
+            <span ng-hide="gist.public">[private]</span>
           </li>
         </ul>
       </li>
     </ul>
     <div ng-show="showEditor" style="height:100%">
-      <textarea class="col-xs-12" ng-model="editor"  style="height:80%"></textarea>
+      <textarea class="col-xs-12" ng-model="editor"  style="height:88%"></textarea>
       <ul class="btn-group col-xs-12" style="height:20%">
         <li class="btn btn-default col-xs-4" ng-click="toggleGists()">
           リスト
