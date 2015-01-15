@@ -7,6 +7,7 @@
     <title>fx0editor</title>
     <link rel="stylesheet" href="bootstrap.min.css">
     <link rel="stylesheet" href="bootstrap-theme.css">
+    <link rel="stylesheet" href="angular-csp.css">
     <link rel="stylesheet" href="editor.css">
     <script src="angular.min.js"></script>
     <script src="localforage.js"></script>
@@ -16,6 +17,7 @@
     <script src="app.js"></script>
 </head>
   <body ng-controller="saveController" class="container-fluid">
+    <div class="col-xs-12" ng-show="offline">通信に失敗しました。ローカルに保存されているデータを表示します。</div>
     <!-- ノートリスト -->
     <ul ng-show="showGists">
       <li ng-repeat="gist in gists">
@@ -26,7 +28,7 @@
         </ul>
       </li>
     </ul>
-    <textarea class="col-xs-12 editor" ng-model="editor" ng-change="test()"></textarea>
+    <textarea class="col-xs-12 editor" ng-model="editor" ng-show="showEditor"></textarea>
     <ul class="btn-group col-xs-12" ng-show="showMenu">
       <li class="btn btn-default col-xs-4" ng-click="toggleGists()">
         リスト

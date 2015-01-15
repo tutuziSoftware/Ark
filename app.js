@@ -1,4 +1,5 @@
-angular.module('fx0', []).controller("saveController", function($scope, $http){
+angular.module('fx0', []).controller("saveController", ['$scope', '$http', function($scope, $http){
+  console.log($http);
   initOauth($http);
   fetchGists();
   
@@ -11,10 +12,10 @@ angular.module('fx0', []).controller("saveController", function($scope, $http){
   //---$scope------------------------------------------------------------------------------------------------
   $scope.showGists = true;
   $scope.showSearch = false;
+  $scope.showEditor = false;
+  $scope.offline = false;
   
   $scope.selectGists = function(gistId, file){
-    console.log("selectGists", gistId, file);
-    
     selectedGist.gistId = gistId;
     selectedGist.file = file;
     
@@ -24,11 +25,14 @@ angular.module('fx0', []).controller("saveController", function($scope, $http){
       new Storage(gistId+file.raw_url).setItem(text);
       
       $scope.editor = text;
+      $scope.showEditor = true;
     }).error(function(){
       new Storage(gistId+file.raw_url).getItem().then(function(text){
         $scope.editor = text;
+        $scope.showEditor = true;
       }).catch(function(){
         $scope.offline = true;
+        $scope.showEditor = false;
       });
     });
   };
@@ -74,6 +78,8 @@ angular.module('fx0', []).controller("saveController", function($scope, $http){
         window.open("https://github.com/login/oauth/authorize?client_id=b3acd7e486cdddfc9a7d&scope=gist", "_blank");
 
         var code = prompt('codeを入力してください');
+        
+        console.log($http);
 
         $http({
           url:"https://github.com/login/oauth/access_token",
@@ -85,6 +91,7 @@ angular.module('fx0', []).controller("saveController", function($scope, $http){
           }
         })
         .success(function(param){
+          console.log(param);
           var accessToken = param.match(/access_token=([^&]*)/)[1];
 
           if(accessToken != void 0){
@@ -123,7 +130,6 @@ angular.module('fx0', []).controller("saveController", function($scope, $http){
         $scope.offline = false;
 
         new Storage("gist").setItem(gists);
-        $scope.showGists = !$scope.showGists;
         $scope.gists = gists;
       }).error(function(){
         $scope.offline = true;
@@ -134,7 +140,7 @@ angular.module('fx0', []).controller("saveController", function($scope, $http){
       });
     });
   }
-});
+}]);
 
 
 
