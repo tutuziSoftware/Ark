@@ -13,7 +13,6 @@
     <script src="localforage.js"></script>
     <script src="jquery-2.1.3.min.js"></script>
     <script src="underscore-min.js"></script>
-    <script src="gh3.js"></script>
     <script src="app.js"></script>
 </head>
   <body ng-controller="saveController" class="container-fluid">
@@ -24,22 +23,25 @@
         <ul>
           <li ng-repeat="file in gist.files">
             <a ng-click="selectGists(gist.id, file)">{{file.filename}}</a>
+            <span ng-hide="gist.public">private</span>
           </li>
         </ul>
       </li>
     </ul>
-    <textarea class="col-xs-12 editor" ng-model="editor" ng-show="showEditor"></textarea>
-    <ul class="btn-group col-xs-12" ng-show="showMenu">
-      <li class="btn btn-default col-xs-4" ng-click="toggleGists()">
-        リスト
-      </li>
-      <li class="btn btn-default col-xs-4" ng-click="showSearch = true">
-        検索
-      </li>
-      <li class="btn btn-default col-xs-4" ng-click="saveGist()">
-        保存
-      </li>
-    </ul>
+    <div ng-show="showEditor" style="height:100%">
+      <textarea class="col-xs-12" ng-model="editor"  style="height:80%"></textarea>
+      <ul class="btn-group col-xs-12" style="height:20%">
+        <li class="btn btn-default col-xs-4" ng-click="toggleGists()">
+          リスト
+        </li>
+        <li class="btn btn-default col-xs-4" ng-click="showSearch = true">
+          検索
+        </li>
+        <li class="btn btn-default col-xs-4" ng-click="saveGist()">
+          保存
+        </li>
+      </ul>
+    </div>
     <!-- 検索欄 -->
     <div ng-show="showSearch" class="input-group">
       <input ng-model="searchQuery" class="form-control">

@@ -26,15 +26,22 @@ angular.module('fx0', []).controller("saveController", ['$scope', '$http', funct
       
       $scope.editor = text;
       $scope.showEditor = true;
+      $scope.showGists = false;
     }).error(function(){
       new Storage(gistId+file.raw_url).getItem().then(function(text){
         $scope.editor = text;
         $scope.showEditor = true;
+        $scope.showGists = false;
       }).catch(function(){
         $scope.offline = true;
         $scope.showEditor = false;
       });
     });
+  };
+  
+  $scope.toggleGists = function(){
+    $scope.showEditor = !$scope.showEditor;
+    $scope.showGists = !$scope.showGists;
   };
   
   $scope.saveGist = function(){
@@ -121,21 +128,30 @@ angular.module('fx0', []).controller("saveController", ['$scope', '$http', funct
     });
   }
   
+  /**
+   * gistからデータを取得します。
+   * この関数はuserId、accessTokenが存在しない場合、何も行いません。
+   */
   function fetchGists(){
     new Storage("userId").getItem().then(function(userId){
-      $http({
-        url:"https://api.github.com/users/"+userId+"/gists",
-        method:"GET"
-      }).success(function(gists){
-        $scope.offline = false;
+      new Storage("accessToken").getItem().then(function(accessToken){
+        $http({
+          url:"https://api.github.com/users/"+userId+"/gists",
+          method:"GET",
+          headers: {
+            Authorization: "token "+accessToken
+          }
+        }).success(function(gists){
+          $scope.offline = false;
 
-        new Storage("gist").setItem(gists);
-        $scope.gists = gists;
-      }).error(function(){
-        $scope.offline = true;
-
-        new Storage("gist").getItem().then(function(gists){
+          new Storage("gist").setItem(gists);
           $scope.gists = gists;
+        }).error(function(){
+          $scope.offline = true;
+
+          new Storage("gist").getItem().then(function(gists){
+            $scope.gists = gists;
+          });
         });
       });
     });

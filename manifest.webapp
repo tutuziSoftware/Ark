@@ -1,6 +1,6 @@
 {
-  "name": "fx0editor",
-  "description": "Fx0専用エディタ",
+  "name": "Ark",
+  "description": "Gist用エディタ",
   "launch_path": "/index.html",
   "icons": {
     "16": "/icons/icon16x16.png",
