@@ -24,22 +24,44 @@ angular.module('fx0', []).controller("saveController", ['$scope', '$http', '$tim
         url:"https://api.github.com/gists/"+gist.id
       }).success(function(gist){
         var text = gist.files[file.filename].content;
-        editorSave.setItem(text);
-
-        $scope.editor = text;
-        $scope.showEditor = true;
-        $scope.showGists = false;
-        $scope.offline = false;
+        
+        editorSave.getItem().then(function(savedText){
+          //ローカルにデータ存在
+          if(text == savedText){
+            $scope.editor = text;
+          }else{
+            $scope.editor = savedText;
+            $scope.showConflict = true;
+          }
+          
+          $scope.showEditor = true;
+          $scope.showGists = false;
+          $scope.offline = false;
+          $scope.$apply();
+        }).catch(function(){
+          //ローカルにデータなし、ネットワークからデータあり
+          editorSave.setItem(text);
+          $scope.editor = text;
+          $scope.showEditor = true;
+          $scope.showGists = false;
+          $scope.offline = false;
+          $scope.$apply();
+        });
       }).error(function(){
+        //通信エラー
+        console.log("e");
         editorSave.getItem().then(function(text){
           $scope.editor = text;
           $scope.showEditor = true;
           $scope.showGists = false;
+          $scope.offline = true;
+          $scope.$apply();
         }).catch(function(){
           $scope.showEditor = false;
+          $scope.showGists = true;
+          $scope.offline = true;
+          $scope.$apply();
         });
-        
-        $scope.offline = true;
       });
     });
   };
@@ -47,6 +69,7 @@ angular.module('fx0', []).controller("saveController", ['$scope', '$http', '$tim
   $scope.toggleGists = function(){
     $scope.showEditor = !$scope.showEditor;
     $scope.showGists = !$scope.showGists;
+    $scope.showConflict = false;
   };
   
   $scope.saveGist = function(){
@@ -70,6 +93,7 @@ angular.module('fx0', []).controller("saveController", ['$scope', '$http', '$tim
         }
       }).success(function(){
         $scope.saved = true;
+        $scope.showConflict = false;
         $timeout(function(){
           $scope.saved = false;
         }, 3000);

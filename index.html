@@ -18,6 +18,7 @@
   <body ng-controller="saveController" class="container-fluid">
     <div class="col-xs-12" ng-show="offline">通信に失敗しました。ローカルに保存されているデータを表示します。</div>
     <div class="col-xs-12" ng-show="saved">保存しました</div>
+    <div class="col-xs-12" ng-show="showConflict">ローカルで保存したものとGistに保存されているものが違います。ローカルを表示します。</div>
     <!-- ノートリスト -->
     <ul ng-show="showGists" class="media-list">
       <li ng-repeat="gist in gists" class="media">
@@ -31,15 +32,18 @@
     </ul>
     <div ng-show="showEditor" style="height:100%">
       <textarea class="col-xs-12" ng-model="editor"  style="height:88%"></textarea>
-      <ul class="btn-group col-xs-12" style="height:20%">
-        <li class="btn btn-default col-xs-4" ng-click="toggleGists()">
+      <ul class="btn-group col-xs-12">
+        <li class="btn btn-default col-xs-3" ng-click="toggleGists()">
           リスト
         </li>
-        <li class="btn btn-default col-xs-4" ng-click="showSearch = true">
+        <li class="btn btn-default col-xs-3" ng-click="showSearch = true">
           検索
         </li>
-        <li class="btn btn-default col-xs-4" ng-click="saveGist()">
+        <li class="btn btn-default col-xs-3" ng-click="saveGist()">
           保存
+        </li>
+        <li class="btn btn-default col-xs-3">
+          全画面
         </li>
       </ul>
     </div>
