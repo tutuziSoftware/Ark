@@ -67,12 +67,16 @@ angular.module('fx0', []).controller("saveController", ['$scope', '$http', '$tim
   };
   
   $scope.toggleGists = function(){
+    $scope.saveGist();
+    
     $scope.showEditor = !$scope.showEditor;
     $scope.showGists = !$scope.showGists;
     $scope.showConflict = false;
   };
   
   $scope.saveGist = function(){
+    new Storage(selectedGist.gistId+selectedGist.file.filename).setItem($scope.editor);
+    
     new Storage("accessToken").getItem().then(function(accessToken){
       console.log(accessToken);
 
