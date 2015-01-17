@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html ng-app="fx0" ng-csp>
+<html ng-app="Ark" ng-csp>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1">
 
-    <title>fx0editor</title>
+    <title>Ark - Elysion</title>
     <link rel="stylesheet" href="bootstrap.min.css">
     <link rel="stylesheet" href="bootstrap-theme.css">
     <link rel="stylesheet" href="angular-csp.css">
@@ -14,6 +14,7 @@
     <script src="jquery-2.1.3.min.js"></script>
     <script src="underscore-min.js"></script>
     <script src="app.js"></script>
+    <script src="searchEditor.js"></script>
 </head>
   <body ng-controller="saveController" class="container-fluid">
     <div class="col-xs-12" ng-show="offline">通信に失敗しました。ローカルに保存されているデータを表示します。</div>
@@ -22,37 +23,50 @@
     <!-- ノートリスト -->
     <ul ng-show="showGists" class="media-list">
       <li ng-repeat="gist in gists" class="media">
-        <ul class="media-list">
-          <li ng-repeat="file in gist.files" class="media">
-            <a ng-click="selectGists(gist, file)">{{file.filename}}</a>
-            <span ng-hide="gist.public">[private]</span>
-          </li>
-        </ul>
-      </li>
+        <dl>
+          <dt>{{gist.description}}</dt>
+          <dd>
+            <ul class="media-list">
+              <li ng-repeat="file in gist.files" class="media">
+                <a ng-click="selectGists(gist, file)">{{file.filename}}</a>
+                <span ng-hide="gist.public">[private]</span>
+              </li>
+            </ul>
+          </dd>
+          <hr>
+        </dl>
     </ul>
     <div ng-show="showEditor" style="height:100%">
-      <ul class="btn-group col-xs-12">
-        <li class="btn btn-default col-xs-3" ng-click="toggleGists()">
-          リスト
-        </li>
-        <li class="btn btn-default col-xs-3" ng-click="showSearch = true">
-          検索
-        </li>
-        <li class="btn btn-default col-xs-3" ng-click="saveGist()">
-          保存
-        </li>
-        <li class="btn btn-default col-xs-3" ng-click="changeName()">
-          ファイル名変更
-        </li>
-      </ul>
-      <textarea class="col-xs-12" ng-model="editor"  style="height:88%"></textarea>
-    </div>
-    <!-- 検索欄 -->
-    <div ng-show="showSearch" class="input-group">
-      <input ng-model="searchQuery" class="form-control">
-      <span class="input-group-btn">
-        <button class="btn btn-default" type="button" ng-click="search()">Go!</button>
-      </span>
+      <!--エディタ操作ボタン-->
+      <div class="row">
+        <ul class="btn-group col-xs-12">
+          <li class="btn btn-default col-xs-3" ng-click="toggleGists()">
+            リスト
+          </li>
+          <li class="btn btn-default col-xs-3" ng-click="showSearch = true">
+            検索
+          </li>
+          <li class="btn btn-default col-xs-3" ng-click="saveGist()">
+            保存
+          </li>
+          <li class="btn btn-default col-xs-3" ng-click="changeName()">
+            改名
+          </li>
+        </ul>
+      </div>
+      <!-- 検索欄 -->
+      <div class="row">
+        <div ng-show="showSearch" class="input-group col-xs-offset-1 col-xs-10">
+          <input ng-model="searchQuery" class="form-control">
+          <span class="input-group-btn">
+            <button class="btn btn-default" type="button" ng-click="searchEditor('next')">next</button>
+            <button class="btn btn-default" type="button" ng-click="searchEditor('prev')">prev</button>
+          </span>
+        </div>
+      </div>
+      <div class="row" style="height:100%;">
+        <textarea class="col-xs-12" ng-model="editor" search-editor style="height:88%;"></textarea>
+      </div>
     </div>
   </body>
 </html>

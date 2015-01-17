@@ -1,4 +1,6 @@
-angular.module('fx0', []).controller("saveController", ['$scope', '$http', '$timeout', function($scope, $http, $timeout){
+var ark = angular.module('Ark', []);
+
+ark.controller("saveController", ['$scope', '$http', '$timeout', function($scope, $http, $timeout){
   initOauth($http);
   fetchGists();
 
@@ -160,6 +162,7 @@ angular.module('fx0', []).controller("saveController", ['$scope', '$http', '$tim
             Authorization: "token "+accessToken
           }
         }).success(function(gists){
+          console.log(gists);
           $scope.offline = false;
 
           new Storage("gist").setItem(gists);
