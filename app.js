@@ -18,55 +18,24 @@ angular.module('fx0', []).controller("saveController", ['$scope', '$http', '$tim
   $scope.selectGists = function(gist, file){
     selectedGist.gistId = gist.id;
     selectedGist.file = file;
-    const editorSave = new Storage(selectedGist.gistId+file.filename);
-    
-    new Storage("accessToken").getItem().then(function(accessToken){
-      $http({
-        url:"https://api.github.com/gists/"+gist.id
-      }).success(function(gist){
-        //TODO ここでGistの方にファイルが存在しないとエラーになる。
-        //gist.files[file.filename]がundefined
-        //対策：GistAPIに移管、改修が妥当
-        var text = gist.files[file.filename].content;
-        
-        editorSave.getItem().then(function(savedText){
-          //ローカルにデータ存在
-          if(text == savedText){
-            $scope.editor = text;
-          }else{
-            $scope.editor = savedText;
-            $scope.showConflict = true;
-          }
-          
-          $scope.showEditor = true;
-          $scope.showGists = false;
-          $scope.offline = false;
-          $scope.$apply();
-        }).catch(function(){
-          //ローカルにデータなし、ネットワークからデータあり
-          editorSave.setItem(text);
-          $scope.editor = text;
-          $scope.showEditor = true;
-          $scope.showGists = false;
-          $scope.offline = false;
-          $scope.$apply();
-        });
-      }).error(function(){
-        //通信エラー
-        console.log("e");
-        editorSave.getItem().then(function(text){
-          $scope.editor = text;
-          $scope.showEditor = true;
-          $scope.showGists = false;
-          $scope.offline = true;
-          $scope.$apply();
-        }).catch(function(){
-          $scope.showEditor = false;
-          $scope.showGists = true;
-          $scope.offline = true;
-          $scope.$apply();
-        });
-      });
+
+    console.log("selectGists");
+
+    api.getFile(gist, file).then(function(text){
+      console.log("getFile");
+      $scope.editor = text.text;
+      $scope.showConflict = text.conflict;
+      $scope.showEditor = true;
+      $scope.showGists = false;
+      $scope.offline = false;
+      $scope.$apply();
+    }).catch(function(error){
+      console.log(error);
+      if(error == "NETWORK_ERROR"){
+        $scope.offline = true;
+      }else if(error == "SERVER_FILE_NOT_EXIST"){
+        console.log(error);
+      }
     });
   };
   
@@ -278,53 +247,96 @@ GistAPI.prototype.saveRenameFile = function(gistId, file, newName){
  * @returns {Promise}
  */
 GistAPI.prototype.getFile = function(gist, file){
-  const promise = new Promise(function(resolve, reject){
-    const $http = this._$http;
-    const saved = new Storage(gist.id+file.filename);
+  const self = this;
+  const $http = this._$http;
 
-    saved.getItem().then(function(savedText){
+  const promise = new Promise(function(resolve, reject){
+    const storage = new Storage(gist.id+file.filename);
+
+    storage.getItem().then(function(localText){
+      fetch(localText);
+    }).catch(function(){
+      fetch();
+    });
+
+    function fetch(localText){
       $http({
         url:"https://api.github.com/gists/"+gist.id
       }).success(function(gist){
-        const FILE_EXIST = file.filename in gist.files;
+        const LOCAL_FILE_EXIST = 1;
+        const SERVER_FILE_EXIST = 2;
+        const FILE_EXIST = 3;
 
-        if(FILE_EXIST == false){
+        const localFileExist = !!localText ? LOCAL_FILE_EXIST : 0;
+        const serverFileExist = (file.filename in gist.files) ? SERVER_FILE_EXIST : 0;
+        const fileExist = localFileExist + serverFileExist;
+
+        const mode = {};
+        mode[0] = function(){
+          reject("FILE_EXIST");
+        };
+        mode[LOCAL_FILE_EXIST] = function(){
           resolve({
-            text:savedText
+            localText:localText,
+            text:localText
           });
-        }
-
-        var text = gist.files[file.filename].content;
-
-        //ローカルにデータ存在
-        if(text == savedText){
-          resolve({
-            text:text
+        };
+        mode[SERVER_FILE_EXIST] = function(){
+          self._fetchRawUrl(file).then(function(text){
+            storage.setItem(text).then(function(){
+              resolve({
+                text:text
+              });
+            });
+          }).catch(function(error){
+            reject(error);
           });
+        };
+        mode[FILE_EXIST] = function(){
+          self._fetchRawUrl(gist.files[file.filename]).then(function(serverText){
+            console.log(serverText == localText, serverText, localText);
+            if(serverText == localText){
+              resolve({
+                text:localText
+              });
+            }else{
+              resolve({
+                conflict:true,
+                serverText:serverText,
+                localText:localText,
+                text:localText
+              });
+            }
+          }).catch(function(error){
+            reject(error);
+          });
+        };
+
+        if(mode[fileExist]){
+          mode[fileExist]();
         }else{
-          resolve({
-            serverText:text,
-            text:savedText
-          });
+          reject("?_ERROR");
         }
       }).error(function(){
-        resolve({
-          text:savedText
-        });
+        reject("NETWOR_ERROR")
       });
-    }).catch(function(){
-      reject("LOCAL_FILE_NOT_EXIST");
-    });
+    }
   });
 
   return promise;
 };
-GistAPI.prototype._fetchGist = function(gistId){
-  var promise = new Promise;
+GistAPI.prototype._fetchRawUrl = function(file){
+  const $http = this._$http;
 
-  this._$http
-
-  return promise;
+  return new Promise(function(resolve, reject){
+    $http({
+      url:file.raw_url
+    }).success(function(text){
+      resolve(text);
+    }).error(function(){
+      reject("NETWORK_ERROR");
+    });
+  });
 };
 GistAPI.prototype._initOauth = function($http){
   const APP_ID = "b3acd7e486cdddfc9a7d";
