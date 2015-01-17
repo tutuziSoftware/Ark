@@ -1,8 +1,9 @@
 angular.module('fx0', []).controller("saveController", ['$scope', '$http', '$timeout', function($scope, $http, $timeout){
   initOauth($http);
   fetchGists();
-  
+
   //---private-----------------------------------------------------------------------------------------------
+  var api = new GistAPI($http);
   var selectedGist = {
     gistId:null,
     file:null
@@ -67,14 +68,22 @@ angular.module('fx0', []).controller("saveController", ['$scope', '$http', '$tim
   };
   
   $scope.toggleGists = function(){
-    $scope.saveGist();
+    $scope.saveRenameGist();
     
     $scope.showEditor = !$scope.showEditor;
     $scope.showGists = !$scope.showGists;
     $scope.showConflict = false;
   };
   
-  $scope.saveGist = function(){
+  $scope.changeName = function(){
+    const newFilename = prompt("新しいファイル名");
+
+    api.saveRenameGist(selectedGist.gistId, selectedGist.file, newFilename).then(function(){
+      $scope.saved = true;
+    });
+  };
+  
+  $scope.saveRenameGist = function(){
     new Storage(selectedGist.gistId+selectedGist.file.filename).setItem($scope.editor);
     
     new Storage("accessToken").getItem().then(function(accessToken){
@@ -151,7 +160,7 @@ angular.module('fx0', []).controller("saveController", ['$scope', '$http', '$tim
   }
   
   function initUserData($http){
-    console.log("initUserData");
+    console.log("_initUserData");
     new Storage("accessToken").getItem().then(function(accessToken){
       $http({
         url:"https://api.github.com/user?access_token="+accessToken,
@@ -199,7 +208,146 @@ angular.module('fx0', []).controller("saveController", ['$scope', '$http', '$tim
 
 
 
+function GistAPI($http){
+  this._$http = $http;
 
+  new Storage("accessToken").getItem().then(function(accessToken){
+    this._accessToken = accessToken;
+  }).catch(function(){
+    this._initOauth($http);
+  });
+}
+GistAPI.prototype.saveRenameGist = function(gistId, file, newName){
+  const OLD_NAME = file.filename;
+  var $http = this._$http;
+  var promise = new Promise(function(resolve, reject){
+    new Storage("accessToken").getItem().then(function(accessToken){
+      new Storage(gistId+file.filename).getItem().then(function(content){
+        const file = {
+          filename:newName,
+          content:content
+        };
+
+        const files = {};
+        files[OLD_NAME] = file;
+
+        console.log(files);
+        console.log(accessToken);
+
+        $http({
+          url:"https://api.github.com/gists/"+gistId,
+          method:"PATCH",
+          data:{
+            files:files
+          },
+          headers: {
+            Authorization: "token "+accessToken
+          }
+        }).success(function(){
+          console.log("success");
+          new Storage(gistId+OLD_NAME).removeItem();
+          new Storage(gistId+newName).setItem(content);
+        }).error(function(){
+          console.log(arguments, this);
+          reject();
+        });
+      });
+    });
+  });
+
+  return promise;
+};
+GistAPI.prototype._fetchGist = function(gistId){
+  var promise = new Promise;
+
+  this._$http
+
+  return promise;
+};
+GistAPI.prototype._initOauth = function($http){
+  const APP_ID = "b3acd7e486cdddfc9a7d";
+
+  window.open("https://github.com/login/oauth/authorize?client_id="+APP_ID+"&scope=gist", "_blank");
+
+  var code = prompt('codeを入力してください');
+
+  $http({
+    url:"https://github.com/login/oauth/access_token",
+    method:"POST",
+    data:{
+      client_id:APP_ID,
+      client_secret:"c59721ff0a3e25b174570e43da4070cca81fabb9",
+      code:code
+    }
+  })
+  .success(function(param){
+    console.log(param);
+    var accessToken = param.match(/access_token=([^&]*)/)[1];
+
+    if(accessToken != void 0){
+      console.log(accessToken);
+      new Storage("accessToken").setItem(accessToken).then(function(){
+        this._initUserData();
+      });
+    }
+  })
+  .error(function(data, status){
+    console.log(data, status);
+  });
+};
+GistAPI.prototype._initUserData = function(){
+  var self = this;
+  var $http = this._$http;
+
+  new Storage("accessToken").getItem().then(function(accessToken){
+    $http({
+      url:"https://api.github.com/user?access_token="+accessToken,
+      method:"GET"
+    }).success(function(data){
+      new Storage("userId").setItem(data.login).then(function(){
+        self._fetchGists().catch(function(){
+          console.log("error");
+        });
+      });
+    }).error(function(data){
+      console.log(data);
+    });
+  });
+};
+/**
+ * gistからデータを取得します。
+ */
+GistAPI.prototype._fetchGists = function(){
+  var $http = this._$http;
+  var promise = new Promise;
+
+  new Storage("userId").getItem().then(function(userId){
+    new Storage("accessToken").getItem().then(function(accessToken){
+      $http({
+        url:"https://api.github.com/users/"+userId+"/gists",
+        method:"GET",
+        headers: {
+          Authorization: "token "+accessToken
+        }
+      }).success(function(gists){
+        new Storage("gist").setItem(gists);
+        promise.resolve(gists);
+      }).error(function(){
+        new Storage("gist").getItem().then(function(gists){
+          promise.resolve(gists);
+        }).catch(function(){
+          promise.reject();
+        });
+      });
+    }).catch(function(){
+      promise.reject();
+    });
+  }).catch(function(){
+    promise.reject();
+  });
+
+  return promise;
+};
 
 
 
@@ -231,3 +379,6 @@ Storage.prototype.getItem = function(){
     });
   });
 };
+Storage.prototype.removeItem = function(){
+  return localforage.removeItem(this._key);
+}

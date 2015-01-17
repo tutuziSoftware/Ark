@@ -31,7 +31,6 @@
       </li>
     </ul>
     <div ng-show="showEditor" style="height:100%">
-      <textarea class="col-xs-12" ng-model="editor"  style="height:88%"></textarea>
       <ul class="btn-group col-xs-12">
         <li class="btn btn-default col-xs-3" ng-click="toggleGists()">
           リスト
@@ -42,10 +41,11 @@
         <li class="btn btn-default col-xs-3" ng-click="saveGist()">
           保存
         </li>
-        <li class="btn btn-default col-xs-3">
-          全画面
+        <li class="btn btn-default col-xs-3" ng-click="changeName()">
+          ファイル名変更
         </li>
       </ul>
+      <textarea class="col-xs-12" ng-model="editor"  style="height:88%"></textarea>
     </div>
     <!-- 検索欄 -->
     <div ng-show="showSearch" class="input-group">
