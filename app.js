@@ -24,6 +24,9 @@ angular.module('fx0', []).controller("saveController", ['$scope', '$http', '$tim
       $http({
         url:"https://api.github.com/gists/"+gist.id
       }).success(function(gist){
+        //TODO ここでGistの方にファイルが存在しないとエラーになる。
+        //gist.files[file.filename]がundefined
+        //対策：GistAPIに移管、改修が妥当
         var text = gist.files[file.filename].content;
         
         editorSave.getItem().then(function(savedText){
@@ -68,7 +71,7 @@ angular.module('fx0', []).controller("saveController", ['$scope', '$http', '$tim
   };
   
   $scope.toggleGists = function(){
-    $scope.saveRenameGist();
+    $scope.saveGist();
     
     $scope.showEditor = !$scope.showEditor;
     $scope.showGists = !$scope.showGists;
@@ -78,12 +81,13 @@ angular.module('fx0', []).controller("saveController", ['$scope', '$http', '$tim
   $scope.changeName = function(){
     const newFilename = prompt("新しいファイル名");
 
-    api.saveRenameGist(selectedGist.gistId, selectedGist.file, newFilename).then(function(){
+    api.saveRenameFile(selectedGist.gistId, selectedGist.file, newFilename).then(function(){
       $scope.saved = true;
+      $scope.$apply();
     });
   };
   
-  $scope.saveRenameGist = function(){
+  $scope.saveGist = function(){
     new Storage(selectedGist.gistId+selectedGist.file.filename).setItem($scope.editor);
     
     new Storage("accessToken").getItem().then(function(accessToken){
@@ -217,12 +221,19 @@ function GistAPI($http){
     this._initOauth($http);
   });
 }
-GistAPI.prototype.saveRenameGist = function(gistId, file, newName){
+/**
+ * ファイルをリネームします
+ * @param gistId
+ * @param file
+ * @param newName
+ * @returns {Promise}
+ */
+GistAPI.prototype.saveRenameFile = function(gistId, file, newName){
   const OLD_NAME = file.filename;
   var $http = this._$http;
   var promise = new Promise(function(resolve, reject){
     new Storage("accessToken").getItem().then(function(accessToken){
-      new Storage(gistId+file.filename).getItem().then(function(content){
+      new Storage(gistId+OLD_NAME).getItem().then(function(content){
         const file = {
           filename:newName,
           content:content
@@ -245,13 +256,64 @@ GistAPI.prototype.saveRenameGist = function(gistId, file, newName){
           }
         }).success(function(){
           console.log("success");
-          new Storage(gistId+OLD_NAME).removeItem();
-          new Storage(gistId+newName).setItem(content);
+          new Storage(gistId+OLD_NAME).removeItem().then(function(){
+            new Storage(gistId+newName).setItem(content).then(function(){
+              resolve();
+            });
+          });
         }).error(function(){
           console.log(arguments, this);
           reject();
         });
       });
+    });
+  });
+
+  return promise;
+};
+/**
+ * ファイルを取得します。
+ * @param gist
+ * @param file
+ * @returns {Promise}
+ */
+GistAPI.prototype.getFile = function(gist, file){
+  const promise = new Promise(function(resolve, reject){
+    const $http = this._$http;
+    const saved = new Storage(gist.id+file.filename);
+
+    saved.getItem().then(function(savedText){
+      $http({
+        url:"https://api.github.com/gists/"+gist.id
+      }).success(function(gist){
+        const FILE_EXIST = file.filename in gist.files;
+
+        if(FILE_EXIST == false){
+          resolve({
+            text:savedText
+          });
+        }
+
+        var text = gist.files[file.filename].content;
+
+        //ローカルにデータ存在
+        if(text == savedText){
+          resolve({
+            text:text
+          });
+        }else{
+          resolve({
+            serverText:text,
+            text:savedText
+          });
+        }
+      }).error(function(){
+        resolve({
+          text:savedText
+        });
+      });
+    }).catch(function(){
+      reject("LOCAL_FILE_NOT_EXIST");
     });
   });
 
