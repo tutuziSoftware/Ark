@@ -39,18 +39,21 @@
     <div ng-show="showEditor" style="height:100%">
       <!--エディタ操作ボタン-->
       <div class="row">
-        <ul class="btn-group col-xs-12">
-          <li class="btn btn-default col-xs-3" ng-click="toggleGists()">
+        <ul class="btn-group">
+          <li class="btn btn-default" ng-click="toggleGists()">
             リスト
           </li>
-          <li class="btn btn-default col-xs-3" ng-click="showSearch = true">
+          <li class="btn btn-default" ng-click="showSearch = true">
             検索
           </li>
-          <li class="btn btn-default col-xs-3" ng-click="saveGist()">
+          <li class="btn btn-default" ng-click="saveGist()">
             保存
           </li>
-          <li class="btn btn-default col-xs-3" ng-click="changeName()">
+          <li class="btn btn-default" ng-click="changeName()">
             改名
+          </li>
+          <li class="btn btn-default" ng-click="undo()">
+            undo
           </li>
         </ul>
       </div>

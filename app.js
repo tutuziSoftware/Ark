@@ -10,6 +10,26 @@ ark.controller("saveController", ['$scope', '$http', '$timeout', function($scope
     gistId:null,
     file:null
   };
+  var undo = {
+    _layout:[],
+    _index:-1,
+    addLayout:function(editor){
+      this._layout.push(editor);
+      this._index = this._layout.length - 1;
+    },
+    get:function(oldEditor){
+      var editor = "";
+
+      if(this._index != -1){
+        editor = this._layout[this._index];
+        this._index--;
+      }else{
+        editor = oldEditor;
+      }
+
+      return editor;
+    }
+  };
   
   //---$scope------------------------------------------------------------------------------------------------
   $scope.showGists = true;
@@ -82,13 +102,19 @@ ark.controller("saveController", ['$scope', '$http', '$timeout', function($scope
       }).success(function(){
         $scope.saved = true;
         $scope.showConflict = false;
+        undo.addLayout($scope.editor);
         $timeout(function(){
           $scope.saved = false;
         }, 3000);
       }).error(function(){
+        undo.addLayout($scope.editor);
         console.log(arguments);
       });
     });
+  };
+
+  $scope.undo = function(){
+    $scope.editor = undo.get($scope.editor);
   };
   
   //---functions---------------------------------------------------------------------------------------------
