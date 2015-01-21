@@ -357,8 +357,15 @@ GistAPI.prototype.getFile = function(gist, file){
           reject("?_ERROR");
         }
       }).error(function(){
-        console.log("NETWORK_ERROR");
-        reject("NETWORK_ERROR")
+        if(localText !== void 0){
+          resolve({
+            localText:localText,
+            text:localText
+          });
+        }else{
+          console.log("NETWORK_ERROR");
+          reject("NETWORK_ERROR")
+        }
       });
     }
   });
