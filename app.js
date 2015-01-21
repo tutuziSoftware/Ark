@@ -54,9 +54,13 @@ ark.controller("saveController", ['$scope', '$http', '$timeout', function($scope
     }).catch(function(error){
       console.log(error);
       if(error == "NETWORK_ERROR"){
-        $scope.offline = true;
+        $scope.offline = 2;
+        $scope.$apply();
+        console.log(error);
       }else if(error == "SERVER_FILE_NOT_EXIST"){
         console.log(error);
+      }else{
+        console.log("?");
       }
     });
   };
@@ -198,6 +202,8 @@ ark.controller("saveController", ['$scope', '$http', '$timeout', function($scope
 
           new Storage("gist").getItem().then(function(gists){
             $scope.gists = gists;
+            $scope.$apply();
+            console.log("gist");
           });
         });
       });
@@ -283,8 +289,10 @@ GistAPI.prototype.getFile = function(gist, file){
     const storage = new Storage(gist.id+file.filename);
 
     storage.getItem().then(function(localText){
+      console.log("getFile:then");
       fetch(localText);
     }).catch(function(){
+      console.log("getFile:catch");
       fetch();
     });
 
@@ -341,13 +349,16 @@ GistAPI.prototype.getFile = function(gist, file){
           });
         };
 
+        console.log(fileExist);
+
         if(mode[fileExist]){
           mode[fileExist]();
         }else{
           reject("?_ERROR");
         }
       }).error(function(){
-        reject("NETWOR_ERROR")
+        console.log("NETWORK_ERROR");
+        reject("NETWORK_ERROR")
       });
     }
   });
