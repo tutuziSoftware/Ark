@@ -17,9 +17,10 @@
     <script src="searchEditor.js"></script>
 </head>
   <body ng-controller="saveController" class="container-fluid">
-    <div class="col-xs-12" ng-show="offline == 1">通信に失敗しました。ローカルに保存されているデータを表示します。</div>
+    <div class="col-xs-12" ng-show="offline == 1" ng-click="offline = 0">通信に失敗しました。ローカルに保存されているデータを表示します。</div>
     <div class="col-xs-12" ng-show="offline == 2">通信に失敗しました。ローカルにもこのデータは保存されていないようです。</div>
-    <div class="col-xs-12" ng-show="saved">保存しました</div>
+    <div class="col-xs-12" ng-show="saved && (offline == false)">保存しました</div>
+    <div class="col-xs-12" ng-show="saved && offline">ローカルに保存しました</div>
     <div class="col-xs-12" ng-show="showConflict">ローカルで保存したものとGistに保存されているものが違います。ローカルを表示します。</div>
     <!-- ノートリスト -->
     <ul ng-show="showGists" class="media-list">

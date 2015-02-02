@@ -104,15 +104,14 @@ ark.controller("saveController", ['$scope', '$http', '$timeout', function($scope
           Authorization: "token "+accessToken
         }
       }).success(function(){
-        $scope.saved = true;
+        $scope.offline = false;
         $scope.showConflict = false;
         undo.addLayout($scope.editor);
-        $timeout(function(){
-          $scope.saved = false;
-        }, 3000);
+        saved();
       }).error(function(){
         undo.addLayout($scope.editor);
-        console.log(arguments);
+        $scope.offline = true;
+        saved();
       });
     });
   };
@@ -208,6 +207,17 @@ ark.controller("saveController", ['$scope', '$http', '$timeout', function($scope
         });
       });
     });
+  }
+  
+  function saved(){
+    $scope.saved = true;
+    
+    console.log($scope.saved, $scope.offline);
+    
+    $timeout(function(){
+      $scope.saved = false;
+      $scope.offline = false;
+    }, 3000);
   }
 }]);
 
