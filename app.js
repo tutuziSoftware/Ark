@@ -83,6 +83,12 @@ ark.controller("saveController", ['$scope', '$http', '$timeout', function($scope
   };
   
   $scope.saveGist = function(){
+    console.log(selectedGist.gistId);
+    if(selectedGist.gistId == null){
+      newGist();
+      return;
+    }
+
     new Storage(selectedGist.gistId+selectedGist.file.filename).setItem($scope.editor);
     
     new Storage("accessToken").getItem().then(function(accessToken){
@@ -119,9 +125,35 @@ ark.controller("saveController", ['$scope', '$http', '$timeout', function($scope
   $scope.undo = function(){
     $scope.editor = undo.get($scope.editor);
   };
+
+  $scope.newText = function(){
+    $scope.showEditor = true;
+    $scope.showGists = false;
+  };
   
   //---functions---------------------------------------------------------------------------------------------
-  
+  function newGist(){
+    console.log("newGist");
+
+    //TODO ローカル保存の方法を考える
+
+    var gistName = prompt("タイトルを入力してくださ");
+
+    api.createGist(gistName, $scope.editor).then(function(gist){
+      console.log(selectedGist.gistId);
+      selectedGist.gistId = gist.id;
+      console.log(gist);
+      console.log(Object.keys(gist)[0], gist.files[Object.keys(gist)[0]]);
+      selectedGist.file = gist.files[Object.keys(gist.files)[0]];
+      console.log(selectedGist.gistId);
+      saved();
+      $scope.$apply();
+    }).catch(function(){
+      $scope.offline = true;
+      $scope.$apply();
+    });
+  }
+
   /**
    * githubのOAuth承認を行います。
    */
@@ -234,6 +266,33 @@ function GistAPI($http){
   }).catch(function(){
     this._initOauth($http);
   });
+}
+GistAPI.prototype.createGist = function(gistName, text){
+  return new Promise(function(resolve, reject){
+    new Storage("accessToken").getItem().then(function(accessToken){
+      var files = {};
+      files[gistName ? gistName : "_"] = {
+        content:text ? text : "_"
+      };
+
+      console.log(files);
+
+      this._$http({
+        url:"https://api.github.com/gists",
+        method:"POST",
+        data:{
+          files:files
+        },
+        headers: {
+          Authorization: "token "+accessToken
+        }
+      }).success(function(gist){
+        resolve(gist);
+      }).error(function(){
+        reject();
+      });
+    }.bind(this));
+  }.bind(this));
 }
 /**
  * ファイルをリネームします
