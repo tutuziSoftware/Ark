@@ -414,7 +414,16 @@ GistAPI.prototype.getFile = function(gist, file){
               });
             }
           }).catch(function(error){
-            reject(error);
+            console.log("mode[FILE_EXIST]", error);
+            console.log("localText", localText);
+            if(localText != undefined){
+              resolve({
+                text: localText,
+                conflict: false
+              });
+            }else{
+              reject("NETWORK_ERROR");
+            }
           });
         };
 
