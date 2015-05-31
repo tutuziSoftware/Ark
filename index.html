@@ -39,9 +39,9 @@
           <hr>
         </dl>
     </ul>
-    <div ng-show="showEditor" style="height:100%">
+    <div ng-show="showEditor">
       <!--エディタ操作ボタン-->
-      <div class="row">
+      <div class="row editor_header">
         <ul class="btn-group">
           <li class="btn btn-default" ng-click="toggleGists()">
             リスト
@@ -70,8 +70,8 @@
           </span>
         </div>
       </div>
-      <div class="row" style="height:100%;">
-        <textarea class="col-xs-12" ng-model="editor" search-editor style="height:88%;"></textarea>
+      <div class="row editor_body">
+        <textarea class="col-xs-12" ng-model="editor" search-editor style="height: 100%"></textarea>
       </div>
     </div>
   </body>

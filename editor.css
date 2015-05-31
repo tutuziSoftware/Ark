@@ -13,10 +13,18 @@ body, textarea{
 }
 */
 
-html, body{
+html, body, [ng-show="showEditor"]{
   height: 100%;
 }
 
 .editor{
   height: 80%;
+}
+
+.editor_header{
+  height: 6%;
+}
+
+.editor_body{
+  height: 94%;
 }
