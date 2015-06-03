@@ -25,6 +25,14 @@ html, body, [ng-show="showEditor"]{
   height: 9%;
 }
 
-.editor_body{
+.editor_body {
   height: 91%;
+}
+
+.editor_body_add_search{
+  height: 81%;
+}
+
+.editor_search{
+  height: 10%;
 }
