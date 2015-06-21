@@ -203,6 +203,7 @@ ark.controller("saveController", ['$scope', '$http', '$timeout', function($scope
         method:"GET"
       }).success(function(data){
         new Storage("userId").setItem(data.login);
+        fetchGists();
       }).error(function(data){
         console.log(data);
       });
