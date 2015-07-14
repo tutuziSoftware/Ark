@@ -24,7 +24,10 @@
     <div class="col-xs-12" ng-show="showConflict">ローカルで保存したものとGistに保存されているものが違います。ローカルを表示します。</div>
     <!-- ノートリスト -->
     <ul ng-show="showGists" class="media-list">
-      <button ng-click="newText()">新規作成</button>
+      <ul class="btn-group">
+        <li class="btn btn-default" ng-click="newText()">新規作成</li>
+        <li class="btn btn-default" ng-click="reload()">再取得</li>
+      </ul>
       <li ng-repeat="gist in gists" class="media">
         <dl>
           <dt>{{gist.description}}</dt>

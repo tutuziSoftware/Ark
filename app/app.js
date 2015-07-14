@@ -130,6 +130,10 @@ ark.controller("saveController", ['$scope', '$http', '$timeout', function($scope
     $scope.showEditor = true;
     $scope.showGists = false;
   };
+
+  $scope.reload = function(){
+    api.reload();
+  };
   
   //---functions---------------------------------------------------------------------------------------------
   function newGist(){
@@ -451,6 +455,42 @@ GistAPI.prototype.getFile = function(gist, file){
 
   return promise;
 };
+/**
+ * サーバ側のテキストを取得し、ローカルに保存しなおします。
+ * @returns {Promise}
+ */
+GistAPI.prototype.reload = function(){
+  const self = this;
+
+  const promise = new Promise(function(resolve, reject){
+    self._fetchGists().then(function(gists){
+      gists.forEach(function(gist){
+        console.log(gist);
+
+        Object.keys(gist.files).forEach(function(key){
+          const file = gist.files[key];
+          const storage = new Storage(gist.id+file.filename);
+
+          self._fetchRawUrl(file).then(function(text){
+            storage.setItem(text);
+          }).catch(function(){
+            reject("NETWORK_ERROR");
+          });
+        });
+      });
+    }).catch(function(){
+      reject("NETWORK_ERROR");
+    });
+  });
+
+  return promise;
+};
+/**
+ * gistのファイルオブジェクトからテキストを取得します。
+ * @param file
+ * @returns {Promise}
+ * @private
+ */
 GistAPI.prototype._fetchRawUrl = function(file){
   const $http = this._$http;
 
@@ -519,34 +559,32 @@ GistAPI.prototype._initUserData = function(){
  */
 GistAPI.prototype._fetchGists = function(){
   var $http = this._$http;
-  var promise = new Promise;
-
-  new Storage("userId").getItem().then(function(userId){
-    new Storage("accessToken").getItem().then(function(accessToken){
-      $http({
-        url:"https://api.github.com/users/"+userId+"/gists",
-        method:"GET",
-        headers: {
-          Authorization: "token "+accessToken
-        }
-      }).success(function(gists){
-        new Storage("gist").setItem(gists);
-        promise.resolve(gists);
-      }).error(function(){
-        new Storage("gist").getItem().then(function(gists){
-          promise.resolve(gists);
-        }).catch(function(){
-          promise.reject();
+  return new Promise(function(resolve, reject){
+    new Storage("userId").getItem().then(function(userId){
+      new Storage("accessToken").getItem().then(function(accessToken){
+        $http({
+          url:"https://api.github.com/users/"+userId+"/gists",
+          method:"GET",
+          headers: {
+            Authorization: "token "+accessToken
+          }
+        }).success(function(gists){
+          new Storage("gist").setItem(gists);
+          resolve(gists);
+        }).error(function(){
+          new Storage("gist").getItem().then(function(gists){
+            resolve(gists);
+          }).catch(function(){
+            reject();
+          });
         });
+      }).catch(function(){
+        reject();
       });
     }).catch(function(){
-      promise.reject();
+      reject();
     });
-  }).catch(function(){
-    promise.reject();
   });
-
-  return promise;
 };
 
 
